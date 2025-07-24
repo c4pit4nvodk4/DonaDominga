@@ -1,1 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doña Dominga - Catálogo Online</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --dark-color: #2c3e50;
+            --darker-color: #1a252f;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: var(--darker-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto 15px;
+            display: block;
+            background-color: #1a252f;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .logo-placeholder {
+            background-color: #34495e;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .title {
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+            font-size: 2rem;
+        }
+        
+        .update-date {
+            font-style: italic;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        /* Sections */
+        .section {
+            background-color: var(--darker-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--light-color);
+        }
+        
+        /* Client Form */
+        .client-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #34495e;
+            color: white;
+        }
+        
+        /* Orders Grid */
+        .orders-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #34495e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .orders-grid th {
+            background-color: var(--primary-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .orders-grid td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #3d566e;
+        }
+        
+        .orders-grid tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        /* Categories */
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        
+        .category-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .category-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        
+        /* Products Catalog */
+        .catalog {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .category-section {
+            margin-bottom: 40px;
+        }
+        
+        .category-title {
+            font-size: 1.8rem;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--light-color);
+        }
+        
+        .product-card {
+            background-color: #34495e;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 300px;
+            background-color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-name {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .product-controls {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .quantity-input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #2c3e50;
+            color: white;
+            width: 100px;
+        }
+        
+        .details-textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #2c3e50;
+            color: white;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .separator {
+            height: 2px;
+            background-color: #3d566e;
+            margin: 30px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .catalog {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .categories {
+                gap: 8px;
+            }
+            
+            .category-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            background-color: var(--success-color);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-placeholder">
+                <h2>LOGO: PORTADA.png</h2>
+            </div>
+            <h1 class="title">Doña Dominga - Catálogo Online</h1>
+            <p class="update-date">Última Actualización: 03/09/2025</p>
+        </header>
+        
+        <!-- Orders Preview -->
+        <div class="section">
+            <h2 class="section-title">Vista Previa del Pedido</h2>
+            <table class="orders-grid">
+                <thead>
+                    <tr>
+                        <th>Cantidad Unidades</th>
+                        <th>Nombre del Producto</th>
+                        <th>Valor Unitario</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-table-body">
+                    <!-- Pedidos se llenarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Client Section -->
+        <div class="section">
+            <h2 class="section-title">Datos del Cliente</h2>
+            <div class="client-form">
+                <div class="form-group">
+                    <label for="client-name">Nombre Cliente</label>
+                    <input type="text" id="client-name" placeholder="Ingrese su nombre">
+                </div>
+                <div class="form-group">
+                    <label for="local-name">Nombre Local</label>
+                    <input type="text" id="local-name" placeholder="Nombre del local">
+                </div>
+                <div class="form-group">
+                    <label for="rut">RUT</label>
+                    <input type="text" id="rut" placeholder="RUT del cliente">
+                </div>
+                <div class="form-group">
+                    <label for="address">Dirección</label>
+                    <input type="text" id="address" placeholder="Dirección de entrega">
+                </div>
+                <div class="form-group">
+                    <label for="date">Fecha</label>
+                    <input type="text" id="date" readonly>
+                </div>
+            </div>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div class="left-buttons">
+                <button class="btn btn-success" id="save-order">
+                    <i class="fas fa-save"></i> Guardar Pedido
+                </button>
+                <button class="btn btn-primary" id="send-order">
+                    <i class="fas fa-paper-plane"></i> Enviar Pedido
+                </button>
+            </div>
+            <div class="right-buttons">
+                <button class="btn btn-danger" id="reset-order">
+                    <i class="fas fa-trash-alt"></i> Resetear Pedido
+                </button>
+            </div>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <!-- Categories -->
+        <div class="categories">
+            <button class="category-btn" data-category="aguardiente">Aguardiente</button>
+            <button class="category-btn" data-category="jack-daniels">Jack Daniels</button>
+            <button class="category-btn" data-category="jagermeister">Jagermeister</button>
+            <button class="category-btn" data-category="gin">GIN</button>
+            <button class="category-btn" data-category="hielo">Hielo</button>
+            <button class="category-btn" data-category="pisco">Pisco</button>
+            <button class="category-btn" data-category="pisco-sour">Pisco Sour</button>
+            <button class="category-btn" data-category="pisco-mini">Pisco Mini</button>
+            <button class="category-btn" data-category="licores">Licores</button>
+            <button class="category-btn" data-category="ron">Ron</button>
+            <button class="category-btn" data-category="tequila">Tequila</button>
+            <button class="category-btn" data-category="vinos">Vinos</button>
+            <button class="category-btn" data-category="vodka">Vodka</button>
+            <button class="category-btn" data-category="whisky">Whisky</button>
+            <button class="category-btn" data-category="otros">Otros</button>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <!-- Products Catalog -->
+        <div class="section">
+            <h2 class="section-title">Catálogo de Productos</h2>
+            <div id="catalog-container">
+                <!-- Catálogo se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Doña Dominga - Distribuidora de Productos &copy; 2025</p>
+        <p>Alojado en: https://c4pit4nvodk4.github.io/DonaDominga</p>
+    </footer>
+    
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
+    <script>
+        // Datos de ejemplo para productos
+        const productos = {
+            "Aguardiente": [
+                { "nombre": "Aguardiente Blanco del Valle", "imagen": "blanco_valle.jpg", "precio": 12000 },
+                { "nombre": "Aguardiente Antioqueño", "imagen": "antioqueno.jpg", "precio": 12500 },
+                { "nombre": "Aguardiente Néctar", "imagen": "nectar.jpg", "precio": 11800 },
+                { "nombre": "Aguardiente Cristal", "imagen": "cristal.jpg", "precio": 11500 },
+                { "nombre": "Aguardiente Rojo", "imagen": "rojo.jpg", "precio": 11000 }
+            ],
+            "Jack Daniels": [
+                { "nombre": "Jack Daniel's Old No.7", "imagen": "jack_no7.jpg", "precio": 35000 },
+                { "nombre": "Jack Daniel's Honey", "imagen": "jack_honey.jpg", "precio": 38000 },
+                { "nombre": "Jack Daniel's Fire", "imagen": "jack_fire.jpg", "precio": 37000 },
+                { "nombre": "Jack Daniel's Single Barrel", "imagen": "jack_single.jpg", "precio": 65000 },
+                { "nombre": "Jack Daniel's Gentleman", "imagen": "jack_gentleman.jpg", "precio": 45000 }
+            ],
+            "Jagermeister": [
+                { "nombre": "Jägermeister Original", "imagen": "jager_original.jpg", "precio": 22000 },
+                { "nombre": "Jägermeister Cold Brew", "imagen": "jager_coldbrew.jpg", "precio": 24000 },
+                { "nombre": "Jägermeister Manifest", "imagen": "jager_manifest.jpg", "precio": 28000 }
+            ],
+            "GIN": [
+                { "nombre": "Bombay Sapphire", "imagen": "bombay.jpg", "precio": 28000 },
+                { "nombre": "Tanqueray", "imagen": "tanqueray.jpg", "precio": 26000 },
+                { "nombre": "Beefeater", "imagen": "beefeater.jpg", "precio": 24000 },
+                { "nombre": "Hendrick's", "imagen": "hendricks.jpg", "precio": 42000 },
+                { "nombre": "Gordon's", "imagen": "gordons.jpg", "precio": 20000 }
+            ],
+            "Hielo": [
+                { "nombre": "Hielo en Cubos (5kg)", "imagen": "hielo_cubos.jpg", "precio": 5000 },
+                { "nombre": "Hielo en Escamas (10kg)", "imagen": "hielo_escamas.jpg", "precio": 8000 }
+            ],
+            "Pisco": [
+                { "nombre": "Pisco Alto del Carmen", "imagen": "alto_carmen.jpg", "precio": 15000 },
+                { "nombre": "Pisco Mistral", "imagen": "mistral.jpg", "precio": 18000 },
+                { "nombre": "Pisco Capel", "imagen": "capel.jpg", "precio": 16000 },
+                { "nombre": "Pisco Control", "imagen": "control.jpg", "precio": 22000 }
+            ],
+            "Pisco Sour": [
+                { "nombre": "Pisco Sour Premium", "imagen": "sour_premium.jpg", "precio": 12000 },
+                { "nombre": "Pisco Sour Tradicional", "imagen": "sour_tradicional.jpg", "precio": 10000 },
+                { "nombre": "Pisco Sour de Frutilla", "imagen": "sour_frutilla.jpg", "precio": 11000 }
+            ],
+            "Pisco Mini": [
+                { "nombre": "Pisco Mini Alto del Carmen", "imagen": "mini_alto.jpg", "precio": 3000 },
+                { "nombre": "Pisco Mini Capel", "imagen": "mini_capel.jpg", "precio": 2800 },
+                { "nombre": "Pisco Mini Mistral", "imagen": "mini_mistral.jpg", "precio": 3200 }
+            ],
+            "Licores": [
+                { "nombre": "Baileys Original", "imagen": "baileys.jpg", "precio": 22000 },
+                { "nombre": "Kahlúa", "imagen": "kahlua.jpg", "precio": 18000 },
+                { "nombre": "Amaretto Disaronno", "imagen": "amaretto.jpg", "precio": 20000 },
+                { "nombre": "Triple Sec", "imagen": "triple_sec.jpg", "precio": 15000 }
+            ],
+            "Ron": [
+                { "nombre": "Bacardí Blanco", "imagen": "bacardi_blanco.jpg", "precio": 18000 },
+                { "nombre": "Bacardí Oro", "imagen": "bacardi_oro.jpg", "precio": 19000 },
+                { "nombre": "Havana Club Añejo", "imagen": "havana_anejo.jpg", "precio": 22000 },
+                { "nombre": "Captain Morgan", "imagen": "captain.jpg", "precio": 20000 },
+                { "nombre": "Ron Cartavio", "imagen": "cartavio.jpg", "precio": 24000 }
+            ],
+            "Tequila": [
+                { "nombre": "Jose Cuervo Especial", "imagen": "cuervo.jpg", "precio": 25000 },
+                { "nombre": "Don Julio Blanco", "imagen": "donjulio.jpg", "precio": 65000 },
+                { "nombre": "Patrón Silver", "imagen": "patron.jpg", "precio": 75000 },
+                { "nombre": "Olmeca Altos", "imagen": "olmeca.jpg", "precio": 28000 }
+            ],
+            "Vinos": [
+                { "nombre": "Casillero del Diablo", "imagen": "casillero.jpg", "precio": 12000 },
+                { "nombre": "Concha y Toro", "imagen": "concha.jpg", "precio": 10000 },
+                { "nombre": "Santa Rita 120", "imagen": "santa_rita.jpg", "precio": 8000 },
+                { "nombre": "Gato Negro", "imagen": "gato_negro.jpg", "precio": 9000 }
+            ],
+            "Vodka": [
+                { "nombre": "Absolut Vodka", "imagen": "absolut.jpg", "precio": 18000 },
+                { "nombre": "Smirnoff", "imagen": "smirnoff.jpg", "precio": 16000 },
+                { "nombre": "Grey Goose", "imagen": "grey_goose.jpg", "precio": 45000 },
+                { "nombre": "Skyy Vodka", "imagen": "skyy.jpg", "precio": 17000 }
+            ],
+            "Whisky": [
+                { "nombre": "Johnnie Walker Red Label", "imagen": "red_label.jpg", "precio": 25000 },
+                { "nombre": "Johnnie Walker Black Label", "imagen": "black_label.jpg", "precio": 45000 },
+                { "nombre": "Buchanan's", "imagen": "buchanans.jpg", "precio": 35000 },
+                { "nombre": "Chivas Regal 12", "imagen": "chivas.jpg", "precio": 40000 },
+                { "nombre": "Old Parr", "imagen": "old_parr.jpg", "precio": 38000 }
+            ],
+            "Otros": [
+                { "nombre": "Fernet Branca", "imagen": "fernet.jpg", "precio": 15000 },
+                { "nombre": "Campari", "imagen": "campari.jpg", "precio": 14000 },
+                { "nombre": "Jerez Tío Pepe", "imagen": "tio_pepe.jpg", "precio": 12000 }
+            ]
+        };
 
+        // Estado de la aplicación
+        const appState = {
+            pedido: {
+                cliente: {
+                    nombre: '',
+                    local: '',
+                    rut: '',
+                    direccion: '',
+                    fecha: ''
+                },
+                productos: []
+            },
+            currentCategory: 'Aguardiente'
+        };
+
+        // Inicialización de la aplicación
+        document.addEventListener('DOMContentLoaded', () => {
+            // Establecer fecha actual
+            const today = new Date();
+            const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+            document.getElementById('date').value = formattedDate;
+            appState.pedido.cliente.fecha = formattedDate;
+            
+            // Renderizar catálogo
+            renderCatalog();
+            
+            // Configurar eventos
+            setupEventListeners();
+        });
+
+        // Renderizar catálogo de productos
+        function renderCatalog() {
+            const catalogContainer = document.getElementById('catalog-container');
+            catalogContainer.innerHTML = '';
+            
+            // Orden de categorías según requerimiento
+            const categoryOrder = [
+                "Aguardiente", "Jack Daniels", "Jagermeister", "GIN", "Hielo", 
+                "Pisco", "Pisco Sour", "Pisco Mini", "Licores", "Ron", 
+                "Tequila", "Vinos", "Vodka", "Whisky", "Otros"
+            ];
+            
+            categoryOrder.forEach(category => {
+                const categorySection = document.createElement('div');
+                categorySection.className = 'category-section';
+                categorySection.id = category.toLowerCase().replace(/\s+/g, '-');
+                
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                
+                const productsGrid = document.createElement('div');
+                productsGrid.className = 'catalog';
+                
+                if (productos[category]) {
+                    productos[category].forEach(product => {
+                        const productCard = document.createElement('div');
+                        productCard.className = 'product-card fade-in';
+                        
+                        productCard.innerHTML = `
+                            <div class="product-image">${product.nombre}</div>
+                            <div class="product-info">
+                                <h3 class="product-name">${product.nombre}</h3>
+                                <div class="product-controls">
+                                    <div>
+                                        <label for="qty-${product.nombre.replace(/\s+/g, '-')}">Cantidad:</label>
+                                        <input type="number" min="0" class="quantity-input" 
+                                            id="qty-${product.nombre.replace(/\s+/g, '-')}" 
+                                            data-product="${product.nombre}" 
+                                            data-price="${product.precio}"
+                                            value="0">
+                                    </div>
+                                    <div>
+                                        <label for="det-${product.nombre.replace(/\s+/g, '-')}">Detalle:</label>
+                                        <textarea class="details-textarea" 
+                                            id="det-${product.nombre.replace(/\s+/g, '-')}" 
+                                            placeholder="Notas..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        productsGrid.appendChild(productCard);
+                    });
+                }
+                
+                categorySection.appendChild(categoryTitle);
+                categorySection.appendChild(productsGrid);
+                catalogContainer.appendChild(categorySection);
+            });
+            
+            // Configurar eventos de cantidad
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', handleQuantityChange);
+            });
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Campos del cliente
+            document.getElementById('client-name').addEventListener('input', updateClientData);
+            document.getElementById('local-name').addEventListener('input', updateClientData);
+            document.getElementById('rut').addEventListener('input', updateClientData);
+            document.getElementById('address').addEventListener('input', updateClientData);
+            
+            // Botones de acción
+            document.getElementById('save-order').addEventListener('click', saveOrder);
+            document.getElementById('send-order').addEventListener('click', sendOrder);
+            document.getElementById('reset-order').addEventListener('click', resetOrder);
+            
+            // Botones de categorías
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const category = btn.getAttribute('data-category');
+                    document.getElementById(category).scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+
+        // Actualizar datos del cliente
+        function updateClientData() {
+            appState.pedido.cliente = {
+                nombre: document.getElementById('client-name').value,
+                local: document.getElementById('local-name').value,
+                rut: document.getElementById('rut').value,
+                direccion: document.getElementById('address').value,
+                fecha: document.getElementById('date').value
+            };
+            updateOrdersTable();
+        }
+
+        // Manejar cambio de cantidad
+        function handleQuantityChange(e) {
+            const input = e.target;
+            const productName = input.getAttribute('data-product');
+            const price = parseFloat(input.getAttribute('data-price'));
+            const quantity = parseInt(input.value);
+            const details = document.getElementById(`det-${productName.replace(/\s+/g, '-')}`).value;
+            
+            // Buscar si el producto ya existe en el pedido
+            const existingIndex = appState.pedido.productos.findIndex(p => p.nombre === productName);
+            
+            if (quantity > 0) {
+                if (existingIndex !== -1) {
+                    // Actualizar producto existente
+                    appState.pedido.productos[existingIndex] = {
+                        nombre: productName,
+                        cantidad: quantity,
+                        precio: price,
+                        detalles: details
+                    };
+                } else {
+                    // Agregar nuevo producto
+                    appState.pedido.productos.push({
+                        nombre: productName,
+                        cantidad: quantity,
+                        precio: price,
+                        detalles: details
+                    });
+                }
+            } else if (existingIndex !== -1) {
+                // Eliminar producto si cantidad es 0
+                appState.pedido.productos.splice(existingIndex, 1);
+            }
+            
+            updateOrdersTable();
+        }
+
+        // Actualizar tabla de pedidos
+        function updateOrdersTable() {
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML = '';
+            
+            // Agregar datos del cliente
+            const clientRow = document.createElement('tr');
+            clientRow.innerHTML = `
+                <td colspan="3"><strong>Cliente:</strong> ${appState.pedido.cliente.nombre || 'N/A'}</td>
+            `;
+            tableBody.appendChild(clientRow);
+            
+            const localRow = document.createElement('tr');
+            localRow.innerHTML = `
+                <td colspan="3"><strong>Local:</strong> ${appState.pedido.cliente.local || 'N/A'}</td>
+            `;
+            tableBody.appendChild(localRow);
+            
+            const rutRow = document.createElement('tr');
+            rutRow.innerHTML = `
+                <td colspan="3"><strong>RUT:</strong> ${appState.pedido.cliente.rut || 'N/A'}</td>
+            `;
+            tableBody.appendChild(rutRow);
+            
+            const addressRow = document.createElement('tr');
+            addressRow.innerHTML = `
+                <td colspan="3"><strong>Dirección:</strong> ${appState.pedido.cliente.direccion || 'N/A'}</td>
+            `;
+            tableBody.appendChild(addressRow);
+            
+            const dateRow = document.createElement('tr');
+            dateRow.innerHTML = `
+                <td colspan="3"><strong>Fecha:</strong> ${appState.pedido.cliente.fecha || 'N/A'}</td>
+            `;
+            tableBody.appendChild(dateRow);
+            
+            // Separador
+            const separatorRow = document.createElement('tr');
+            separatorRow.innerHTML = '<td colspan="3"><hr></td>';
+            tableBody.appendChild(separatorRow);
+            
+            // Encabezados de productos
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `
+                <th>Cantidad</th>
+                <th>Producto</th>
+                <th>Valor Unitario</th>
+            `;
+            tableBody.appendChild(headerRow);
+            
+            // Agregar productos
+            if (appState.pedido.productos.length > 0) {
+                appState.pedido.productos.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.cantidad}</td>
+                        <td>${product.nombre}${product.detalles ? `<br><small>${product.detalles}</small>` : ''}</td>
+                        <td>$${product.precio.toLocaleString()}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Calcular total
+                const total = appState.pedido.productos.reduce((sum, product) => 
+                    sum + (product.cantidad * product.precio), 0);
+                
+                const totalRow = document.createElement('tr');
+                totalRow.innerHTML = `
+                    <td colspan="2" style="text-align: right;"><strong>Total:</strong></td>
+                    <td><strong>$${total.toLocaleString()}</strong></td>
+                `;
+                tableBody.appendChild(totalRow);
+            } else {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="3" style="text-align: center;">No hay productos en el pedido</td>';
+                tableBody.appendChild(emptyRow);
+            }
+        }
+
+        // Guardar pedido como Excel
+        function saveOrder() {
+            if (appState.pedido.productos.length === 0) {
+                showNotification('Agregue productos al pedido antes de guardar', true);
+                return;
+            }
+            
+            // Crear libro de Excel
+            const wb = XLSX.utils.book_new();
+            
+            // Hoja de datos del cliente
+            const clientData = [
+                ['Nombre Cliente', appState.pedido.cliente.nombre || ''],
+                ['Nombre Local', appState.pedido.cliente.local || ''],
+                ['RUT', appState.pedido.cliente.rut || ''],
+                ['Dirección', appState.pedido.cliente.direccion || ''],
+                ['Fecha', appState.pedido.cliente.fecha || '']
+            ];
+            const clientSheet = XLSX.utils.aoa_to_sheet(clientData);
+            XLSX.utils.book_append_sheet(wb, clientSheet, "Datos Cliente");
+            
+            // Hoja de productos
+            const productsData = [
+                ['Cantidad', 'Producto', 'Valor Unitario', 'Total', 'Detalles']
+            ];
+            
+            appState.pedido.productos.forEach(product => {
+                productsData.push([
+                    product.cantidad,
+                    product.nombre,
+                    product.precio,
+                    product.cantidad * product.precio,
+                    product.detalles || ''
+                ]);
+            });
+            
+            // Agregar total
+            const total = appState.pedido.productos.reduce((sum, product) => 
+                sum + (product.cantidad * product.precio), 0);
+            productsData.push(['', '', '', 'Total:', total]);
+            
+            const productsSheet = XLSX.utils.aoa_to_sheet(productsData);
+            XLSX.utils.book_append_sheet(wb, productsSheet, "Detalle Pedido");
+            
+            // Guardar archivo
+            XLSX.writeFile(wb, `Pedido_Doña_Dominga_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showNotification('Pedido guardado en Excel correctamente');
+        }
+
+        // Enviar pedido
+        function sendOrder() {
+            if (appState.pedido.productos.length === 0) {
+                showNotification('Agregue productos al pedido antes de enviar', true);
+                return;
+            }
+            
+            // Generar mensaje para WhatsApp
+            let mensaje = `Pedido de: ${appState.pedido.cliente.nombre || 'Cliente'}\n`;
+            mensaje += `Local: ${appState.pedido.cliente.local || 'N/A'}\n`;
+            mensaje += `RUT: ${appState.pedido.cliente.rut || 'N/A'}\n`;
+            mensaje += `Dirección: ${appState.pedido.cliente.direccion || 'N/A'}\n`;
+            mensaje += `Fecha: ${appState.pedido.cliente.fecha || 'N/A'}\n\n`;
+            mensaje += "Productos:\n";
+            
+            appState.pedido.productos.forEach(product => {
+                mensaje += `- ${product.cantidad} x ${product.nombre} ($${product.precio.toLocaleString()})`;
+                if (product.detalles) mensaje += ` - ${product.detalles}`;
+                mensaje += "\n";
+            });
+            
+            const total = appState.pedido.productos.reduce((sum, product) => 
+                sum + (product.cantidad * product.precio), 0);
+            mensaje += `\nTotal: $${total.toLocaleString()}`;
+            
+            // Generar enlace de WhatsApp
+            const urlWA = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+            
+            // Simular envío por email
+            setTimeout(() => {
+                showNotification('Pedido enviado a ventas@empresa.com y cliente@mail.com');
+            }, 1000);
+            
+            // Abrir WhatsApp
+            window.open(urlWA, '_blank');
+        }
+
+        // Resetear pedido
+        function resetOrder() {
+            if (confirm('¿Está seguro que desea resetear todo el pedido?')) {
+                // Limpiar datos del cliente
+                document.getElementById('client-name').value = '';
+                document.getElementById('local-name').value = '';
+                document.getElementById('rut').value = '';
+                document.getElementById('address').value = '';
+                
+                // Restablecer fecha
+                const today = new Date();
+                const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+                document.getElementById('date').value = formattedDate;
+                
+                // Limpiar productos
+                document.querySelectorAll('.quantity-input').forEach(input => {
+                    input.value = '0';
+                });
+                
+                document.querySelectorAll('.details-textarea').forEach(textarea => {
+                    textarea.value = '';
+                });
+                
+                // Resetear estado
+                appState.pedido = {
+                    cliente: {
+                        nombre: '',
+                        local: '',
+                        rut: '',
+                        direccion: '',
+                        fecha: formattedDate
+                    },
+                    productos: []
+                };
+                
+                // Actualizar tabla
+                updateOrdersTable();
+                showNotification('Pedido reseteado correctamente');
+            }
+        }
+
+        // Mostrar notificación
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = isError ? 'notification error show' : 'notification show';
+            
+            setTimeout(() => {
+                notification.className = 'notification';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
